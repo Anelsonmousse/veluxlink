@@ -1,0 +1,12 @@
+export { default as Input } from "./Input";
+export { default as Button } from "./Button";
+export { default as CheckBox } from "./CheckBox";
+export { default as Modal } from "./Modal";
+export { default as Settings } from "./Settings";
+export { default as SignIn } from "./SignIn";
+export { default as Register } from "./Register";
+export { default as BottomBar } from "./BottomBar";
+export { default as Call } from "./Call";
+export { default as Loader } from "./Loader";
+export { default as Header } from "./Header";
+export { default as Hero } from "./Hero";
