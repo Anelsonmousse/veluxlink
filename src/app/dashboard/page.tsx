@@ -226,7 +226,7 @@ export default function DashboardPage() {
         <div className="flex items-center mb-6 justify-between">
           <h1 className="font-bold text-sm sm:text-xl">Scheduled Meetings:</h1>
           <div className="flex items-center justify-center sm:gap-2">
-            <p className="text-xs sm:text-sm">Today's Availability:</p>
+            <p className="text-xs sm:text-sm">Today&apos;s Availability:</p>
             <CheckBox
               isChecked={filterToday}
               onToggle={() => {

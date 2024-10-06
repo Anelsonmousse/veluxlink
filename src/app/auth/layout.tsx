@@ -4,7 +4,7 @@ import { useUser } from "@veluxlink/hooks";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export default function ({
+export default function AuthLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -14,7 +14,7 @@ export default function ({
 
   useEffect(() => {
     if (user) router.replace("/dashboard");
-  }, [user]);
+  }, [user, router]);
 
   if (loading || user)
     return (

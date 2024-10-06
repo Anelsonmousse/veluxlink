@@ -16,7 +16,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (!user || error) router.replace("/auth/login");
-  }, [user, error]);
+  }, [user, error, router]);
 
   if (!user || error) return null;
 
