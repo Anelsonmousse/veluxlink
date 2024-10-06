@@ -1,9 +1,5 @@
+"use client";
 import { SignIn } from "@veluxlink/components";
-import { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "VeluxLink | Login",
-};
 
 export default function LoginPage() {
   return (

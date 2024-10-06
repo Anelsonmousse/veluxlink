@@ -1,9 +1,5 @@
+"use client";
 import { Register } from "@veluxlink/components";
-import { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "VeluxLink | Register",
-};
 
 export default function RegisterPage() {
   const handleSubmit = () => {};
