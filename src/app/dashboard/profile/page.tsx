@@ -36,7 +36,7 @@ const ProfileImage: React.FC<ProfileImageProps> = ({ src, alt }) => (
   />
 );
 
-export default function () {
+export default function ProfilePage() {
   return (
     <div className="flex overflow-hidden flex-col px-11 py-16 bg-neutral-900 max-md:px-5">
       <div className="max-w-full w-[837px]">

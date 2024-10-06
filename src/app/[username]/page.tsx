@@ -6,7 +6,7 @@ import useSWR from "swr";
 import { api, customFormData } from "@veluxlink/util";
 import TokenStorage from "@veluxlink/tokenStorage";
 
-export default function () {
+export default function UserPage() {
   const { username } = useParams();
 
   // const { data, isLoading, error } = useSWR(

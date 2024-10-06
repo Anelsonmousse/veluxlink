@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "VeluxLink | Login",
 };
 
-export default function () {
+export default function LoginPage() {
   return (
     <main className="flex px-4 sm:px-0 gap-10 flex-col items-center min-h-screen justify-center">
       <svg

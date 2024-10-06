@@ -87,7 +87,7 @@ const SignIn = () => {
               Sign In
             </Button>
             <div className="flex mt-3 justify-center gap-2">
-              <p>Don't have an account?</p>
+              <p>Don&apos;t have an account?</p>
               <Link className="text-main" href="/auth/register">
                 Sign up
               </Link>

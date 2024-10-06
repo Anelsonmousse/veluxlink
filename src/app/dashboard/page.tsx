@@ -95,7 +95,7 @@ const deposit = async (connection: web3.Connection, wallet: AnchorWallet) => {
   }
 };
 
-export default function () {
+export default function DashboardPage() {
   const wallet = useAnchorWallet();
   const { connected, disconnect, connecting } = useWallet();
   const { connection } = useConnection();

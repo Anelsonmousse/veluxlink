@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function ({
+export default function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
