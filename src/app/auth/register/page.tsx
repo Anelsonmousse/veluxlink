@@ -2,7 +2,6 @@
 import { Register } from "@veluxlink/components";
 
 export default function RegisterPage() {
-  const handleSubmit = () => {};
   return (
     <main className="flex px-4 pt-8 text-white sm:px-0 gap-10 flex-col items-center min-h-screen justify-center">
       <svg

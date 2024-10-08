@@ -6,6 +6,7 @@ import { useState } from "react";
 import Input from "./Input";
 import { ErrorMessage, Formik } from "formik";
 import * as yup from "yup";
+import toast from "react-hot-toast";
 
 type Props = {
   values: {
@@ -13,12 +14,18 @@ type Props = {
     voiceCharge: number;
     videoCharge: number;
   };
+  actions?: {
+    scheduleFee: (fee: string) => Promise<void>;
+    voiceCharge: (fee: string) => Promise<void>;
+    videoCharge: (fee: string) => Promise<void>;
+  };
   editable?: boolean;
 };
 
 const Settings = ({
   values: { scheduleFee, videoCharge, voiceCharge },
   editable,
+  actions,
 }: Props) => {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showVoiceChargeModal, setShowVoiceChargeModal] = useState(false);
@@ -76,7 +83,10 @@ const Settings = ({
             initialValues={{
               amount: 0,
             }}
-            onSubmit={() => {}}
+            onSubmit={async (values) => {
+              await actions?.scheduleFee(values.amount.toString());
+              setShowScheduleModal(false);
+            }}
           >
             {(formik) => (
               <form onSubmit={formik.handleSubmit}>
@@ -127,7 +137,10 @@ const Settings = ({
             initialValues={{
               amount: 0,
             }}
-            onSubmit={() => {}}
+            onSubmit={async (values) => {
+              await actions?.voiceCharge(values.amount.toString());
+              setShowVoiceChargeModal(false);
+            }}
           >
             {(formik) => (
               <form onSubmit={formik.handleSubmit}>
@@ -173,7 +186,10 @@ const Settings = ({
             initialValues={{
               amount: 0,
             }}
-            onSubmit={() => {}}
+            onSubmit={async (values) => {
+              await actions?.videoCharge(values.amount.toString());
+              setShowVideoChargeModal(false);
+            }}
           >
             {(formik) => (
               <form onSubmit={formik.handleSubmit}>

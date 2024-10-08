@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 
 const CheckBox = ({
@@ -7,14 +6,12 @@ const CheckBox = ({
   onToggle,
 }: {
   isChecked: boolean;
-  onToggle?: (checked: boolean) => void;
+  onToggle: (checked: boolean) => void;
 }) => {
   return (
     <label className="w-12 h-6 shrink-0 relative inline-block">
       <input
-        onChange={() => {
-          return typeof onToggle === "function" && onToggle(isChecked);
-        }}
+        onChange={() => onToggle(isChecked)}
         className="w-0 h-0 opacity-0"
         type="checkbox"
       />

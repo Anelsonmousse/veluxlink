@@ -5,17 +5,27 @@ import {
   useAnchorWallet,
   useConnection,
   useWallet,
-  Wallet,
 } from "@solana/wallet-adapter-react";
 import { WalletModalButton } from "@solana/wallet-adapter-react-ui";
 import { PublicKey } from "@solana/web3.js";
-import { Button, CheckBox, Modal, Settings } from "@veluxlink/components";
+import {
+  Button,
+  CheckBox,
+  Input,
+  Modal,
+  Settings,
+} from "@veluxlink/components";
 import { FaClock } from "react-icons/fa";
 import idl from "../../../idl.json";
 import { AnchorProvider, BN, Idl, Program, web3 } from "@project-serum/anchor";
 import { useEffect, useState } from "react";
 import useScheduledCalls from "@veluxlink/hooks/useScheduledCalls";
 import useSWR from "swr";
+import { useUser } from "@veluxlink/hooks";
+import toast from "react-hot-toast";
+import { api, customFormData } from "@veluxlink/util";
+import { ErrorMessage, Formik } from "formik";
+import * as yup from "yup";
 
 const programID = new PublicKey(idl.metadata.address);
 
@@ -29,9 +39,6 @@ const deposit = async (connection: web3.Connection, wallet: AnchorWallet) => {
     [Buffer.from("treasury")],
     programID
   );
-
-  const treasury_balance = await connection.getBalance(treasuryPDA);
-  console.log("tr bal: ", treasury_balance);
 
   const arrKey = Uint8Array.from([
     214, 149, 167, 114, 98, 187, 99, 237, 147, 37, 145, 209, 47, 221, 223, 252,
@@ -50,9 +57,6 @@ const deposit = async (connection: web3.Connection, wallet: AnchorWallet) => {
       userBalancePDA
     );
 
-    console.log("old user balance: ", old_user_balance.balance.toNumber());
-    const old_treasury_balance = await connection.getBalance(treasuryPDA);
-
     const amount = new BN(web3.LAMPORTS_PER_SOL * 1);
     await program.methods
       .deposit(amount)
@@ -64,21 +68,6 @@ const deposit = async (connection: web3.Connection, wallet: AnchorWallet) => {
       })
       .signers([user])
       .rpc();
-
-    const new_user_balance = await program.account.userBalance.fetch(
-      userBalancePDA
-    );
-    // ...............
-
-    const onchain_treasury_account = await program.account.veluxTreasury.fetch(
-      treasuryPDA
-    );
-
-    console.log(
-      old_user_balance.toNumber(),
-      " new: ",
-      new_user_balance.toNumber()
-    );
   } catch (e) {
     console.log(e);
     await program.methods
@@ -100,8 +89,10 @@ export default function DashboardPage() {
   const { connected, disconnect, connecting } = useWallet();
   const { connection } = useConnection();
   const { data: calls } = useScheduledCalls();
-  const [filterToday, setFilterToday] = useState(false);
+  const { user, mutate: mutateUser } = useUser();
+  const [filterToday, setFilterToday] = useState(!!user.availability);
   const [showAccountModal, setShowAccountModal] = useState(false);
+  const [withdrawModal, setWithdrawModal] = useState(false);
   const {
     data: userBalance,
     isLoading,
@@ -133,14 +124,69 @@ export default function DashboardPage() {
     return old_user_balance.balance.toNumber();
   });
 
-  const getDate = (stringDate: string) => {
-    const parts = stringDate.split("-");
-    const date = new Date(
-      Number("20" + parts[2]),
-      Number(parts[1]) - 1,
-      Number(parts[0])
-    );
-    return date;
+  const setVideoFee = async (fee: string) => {
+    const formdata = customFormData();
+    formdata.append("video_fee", fee);
+    const { data } = await api("/schedules/setVideoFee", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+      body: formdata,
+    });
+    return data;
+  };
+
+  const setScheduleFee = async (fee: string) => {
+    const formdata = customFormData();
+    formdata.append("schedule_fee", fee);
+    const { data } = await api("/schedules/setScheduleFee", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+      body: formdata,
+    });
+    return data;
+  };
+
+  const setVoiceFee = async (fee: string) => {
+    const formdata = customFormData();
+    formdata.append("voice_fee", fee);
+    const { data } = await api("/schedules/setVoiceFee", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+      body: formdata,
+    });
+    return data;
+  };
+
+  const setAvailability = async () => {
+    const formdata = customFormData();
+    const { data } = await api("/schedules/setAvailability", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+      body: formdata,
+    });
+    if (!data?.status) return;
+    setFilterToday(true);
+  };
+
+  const unsetAvailability = async () => {
+    const formdata = customFormData();
+    const { data } = await api("/schedules/unSetAvailability", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+      body: formdata,
+    });
+    if (!data?.status) return;
+    setFilterToday(false);
   };
 
   return (
@@ -182,10 +228,12 @@ export default function DashboardPage() {
               className="flex items-center gap-1"
               onClick={() => setShowAccountModal(true)}
             >
-              {userBalance && (
+              {userBalance ? (
                 <p className="font-bold text-right text-lg">
                   {userBalance / web3.LAMPORTS_PER_SOL} SOL
                 </p>
+              ) : (
+                <p>Loading Balance...</p>
               )}
               <svg
                 width="24"
@@ -197,10 +245,10 @@ export default function DashboardPage() {
               >
                 <path
                   d="M19.9201 8.94995L13.4001 15.47C12.6301 16.24 11.3701 16.24 10.6001 15.47L4.08008 8.94995"
-                  stroke-width="1.5"
-                  stroke-miterlimit="10"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="1.5"
+                  strokeMiterlimit="10"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
             </div>
@@ -213,13 +261,44 @@ export default function DashboardPage() {
       </section>
       <Settings
         values={{
-          scheduleFee: 0.03,
-          voiceCharge: 0.01,
-          videoCharge: 0.5,
+          scheduleFee: user.schedule_fee,
+          voiceCharge: user.voice_charge,
+          videoCharge: user.video_charge,
+        }}
+        actions={{
+          scheduleFee: async (fee: string) => {
+            const data = await setScheduleFee(fee);
+            if (data?.status) {
+              toast.success("Schedule fee set successfully");
+              mutateUser();
+            }
+          },
+          videoCharge: async (fee: string) => {
+            const data = await setVideoFee(fee);
+            if (data?.status) {
+              toast.success("Video fee set successfully");
+              mutateUser();
+            }
+          },
+          voiceCharge: async (fee: string) => {
+            const data = await setVoiceFee(fee);
+            if (data?.status) {
+              toast.success("Voice fee set successfully");
+              mutateUser();
+            }
+          },
         }}
         editable
       />
-      <Button className="w-auto px-3 text-sm md:text-base mt-4 mb-14 rounded-md py-2">
+      <Button
+        onClick={() => {
+          navigator.clipboard.writeText(
+            window.location.origin + "/" + user.uname
+          );
+          toast.success("Copied link");
+        }}
+        className="w-auto px-3 text-sm md:text-base mt-4 mb-14 rounded-md py-2"
+      >
         Copy Link
       </Button>
       <section className="w-full mb-8">
@@ -229,39 +308,33 @@ export default function DashboardPage() {
             <p className="text-xs sm:text-sm">Today&apos;s Availability:</p>
             <CheckBox
               isChecked={filterToday}
-              onToggle={() => {
-                setFilterToday((prev) => !prev);
+              onToggle={async () => {
+                if (filterToday) {
+                  await unsetAvailability();
+                  return;
+                }
+                await setAvailability();
               }}
             />
           </div>
         </div>
         {calls ? (
-          calls
-            .filter((call: any) =>
-              filterToday
-                ? new Date().toDateString() ===
-                  getDate(call.call_date).toDateString()
-                : call
-            )
-            .map((call: any, index: number) => (
-              <div
-                key={index}
-                className="flex mb-6 items-center justify-between"
-              >
-                <div className="flex items-center gap-4">
-                  <FaClock size={32} className="fill-[#FFFB008C]" />
-                  <div>
-                    <p className="font-bold mb-1 md:text-base text-sm">
-                      {call.caller_name}
-                    </p>
-                    <p className="text-xs text-white text-opacity-25">
-                      {call.booked_date}
-                    </p>
-                  </div>
+          calls.map((call: any, index: number) => (
+            <div key={index} className="flex mb-6 items-center justify-between">
+              <div className="flex items-center gap-4">
+                <FaClock size={32} className="fill-[#FFFB008C]" />
+                <div>
+                  <p className="font-bold mb-1 md:text-base text-sm">
+                    {call.caller_name}
+                  </p>
+                  <p className="text-xs text-white text-opacity-25">
+                    {call.booked_date}
+                  </p>
                 </div>
-                <p className="text-xs">{call.call_type}</p>
               </div>
-            ))
+              <p className="text-xs">{call.call_type}</p>
+            </div>
+          ))
         ) : (
           <p>No Scheduled calls</p>
         )}
@@ -307,7 +380,15 @@ export default function DashboardPage() {
             Deposit
           </Button>
           <Button
-            className="px-3 font-bold flex justify-center  py-3 bg-opacity-55 w-auto rounded-lg"
+            className="px-3 font-bold flex justify-center items-center py-3 bg-opacity-55 w-auto rounded-lg"
+            onClick={async () => {
+              setWithdrawModal(true);
+            }}
+          >
+            Withdraw
+          </Button>
+          <Button
+            className="px-3 font-bold flex justify-center bg-transaprent py-3 bg-opacity-55 w-auto rounded-lg"
             onClick={async () => {
               await disconnect();
               setShowAccountModal(false);
@@ -315,6 +396,56 @@ export default function DashboardPage() {
           >
             Disconnect
           </Button>
+        </div>
+      </Modal>
+      <Modal open={withdrawModal} onClose={() => setWithdrawModal(false)}>
+        <div className="flex flex-col">
+          <p className="font-bold mb-8 text-lg text-center">
+            Amount to Withdraw (SOL)
+          </p>
+          <Formik
+            validationSchema={yup.object({
+              amount: yup
+                .string()
+                .test("amount", "The field should have digits only", (value) =>
+                  /^(\d+)(\.\d+)?$/.test(value as string)
+                ),
+            })}
+            initialValues={{
+              amount: 0,
+            }}
+            onSubmit={async (values) => {
+              toast.success(`Withdrawal successful: ${values.amount}SOL`);
+              mutate(
+                userBalance - values.amount * web3.LAMPORTS_PER_SOL,
+                false
+              );
+              setWithdrawModal(false);
+            }}
+          >
+            {(formik) => (
+              <form onSubmit={formik.handleSubmit}>
+                <p className="text-red-400 mb-1 text-sm">
+                  <ErrorMessage name="amount" />
+                </p>
+                <Input
+                  placeholder="Enter amount in SOL"
+                  type="text"
+                  className={
+                    formik.errors.amount && "shadow-red-400 border-red-400"
+                  }
+                  inputMode="numeric"
+                  {...formik.getFieldProps("amount")}
+                />
+                <Button
+                  type="submit"
+                  className="mt-12 md:w-auto md:py-2 md:px-6 md:rounded-md self-end"
+                >
+                  Save
+                </Button>
+              </form>
+            )}
+          </Formik>
         </div>
       </Modal>
     </main>

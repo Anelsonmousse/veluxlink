@@ -1,8 +1,6 @@
-import dynamic from "next/dynamic";
+"use client";
+import CallComp from "@veluxlink/components/Call";
 
-const CallComp = dynamic(() => import("@veluxlink/components/Call"), {
-  ssr: false,
-});
 export default function Call() {
   return <CallComp />;
 }

@@ -6,7 +6,7 @@ export { default as Settings } from "./Settings";
 export { default as SignIn } from "./SignIn";
 export { default as Register } from "./Register";
 export { default as BottomBar } from "./BottomBar";
-export { default as Call } from "./Call";
 export { default as Loader } from "./Loader";
 export { default as Header } from "./Header";
 export { default as Hero } from "./Hero";
+export { default as FAQItem } from "./FAQItem";

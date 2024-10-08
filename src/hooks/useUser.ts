@@ -3,7 +3,7 @@ import { NETWORK_ERROR, customFormData, fetcher } from "@veluxlink/util";
 import useSWR from "swr";
 
 const useUser = () => {
-  const { data, isLoading, error } = useSWR(
+  const { data, isLoading, error, mutate } = useSWR(
     "/users/getuserbyid12",
     async (url) => {
       const storage = new TokenStorage(window.localStorage);
@@ -33,6 +33,7 @@ const useUser = () => {
     user: data,
     loading: isLoading,
     error,
+    mutate,
   };
 };
 

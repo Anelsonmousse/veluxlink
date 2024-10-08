@@ -42,7 +42,6 @@ export const fetcher = (url: string, init?: RequestInit) => {
 };
 
 export const api = async (url: string, init?: RequestInit) => {
-  console.log("url: ", formatAndMergePath(BASE_URL, url));
   try {
     const response = await fetcher(url, init);
     return {
@@ -50,6 +49,7 @@ export const api = async (url: string, init?: RequestInit) => {
       status: response.status,
     };
   } catch (error) {
+    console.log("api Error", error);
     return {
       data: null,
       status: 500,
