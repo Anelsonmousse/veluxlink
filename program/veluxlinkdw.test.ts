@@ -1,6 +1,6 @@
 // No imports needed: web3, anchor, pg and more are globally available
 
-// TESTED ON beta.solpg.io
+// Tests written on beta.solpg.io
 
 describe("Test", () => {
     // it("initialize", async () => {
